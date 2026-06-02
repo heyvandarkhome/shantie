@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>闪贴 宣传图</title>
+    <style>
+      :root {
+        --ink: #1f2328;
+        --ink-soft: rgba(0, 0, 0, 0.55);
+        --red: #d92d20;
+        --orange: #e8590c;
+        --yellow: #d69e2e;
+        --green: #2f9e44;
+        font-family: "PingFang SC", "Helvetica Neue", "Hiragino Sans GB",
+          "Microsoft YaHei", Arial, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        background: #d8d8d6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* 4:3 画布，导出时对这个元素截图 */
+      .poster {
+        width: 1536px;
+        height: 1152px;
+        background: radial-gradient(120% 120% at 80% 10%, #fdfdfc 0%, #f1f1ef 55%, #e9e9e6 100%);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 130px;
+      }
+
+      /* 品牌区 */
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        margin-bottom: 40px;
+      }
+      .brand img {
+        width: 92px;
+        height: 92px;
+        border-radius: 22px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.16), inset 0 0 0 0.5px rgba(0,0,0,0.06);
+      }
+      .brand .name {
+        font-size: 40px;
+        font-weight: 800;
+        letter-spacing: 1px;
+      }
+
+      .headline {
+        font-size: 104px;
+        font-weight: 800;
+        letter-spacing: -2px;
+        line-height: 1.05;
+        color: var(--ink);
+      }
+      .headline .grad {
+        background: linear-gradient(120deg, #1f2328, #7a7f86);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .subline {
+        margin-top: 30px;
+        font-size: 34px;
+        color: var(--ink-soft);
+        font-weight: 500;
+        max-width: 620px;
+        line-height: 1.5;
+      }
+      .features {
+        margin-top: 44px;
+        display: flex;
+        gap: 14px;
+      }
+      .features span {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--ink-soft);
+        background: rgba(0,0,0,0.05);
+        padding: 10px 20px;
+        border-radius: 999px;
+      }
+
+      /* 右侧便签群 */
+      .stage {
+        position: absolute;
+        right: -40px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 720px;
+        height: 720px;
+      }
+      .note {
+        position: absolute;
+        width: 330px;
+        background: #fff;
+        border-radius: 22px;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.16), 0 4px 10px rgba(0,0,0,0.08),
+          inset 0 0 0 0.5px rgba(0,0,0,0.06);
+        overflow: hidden;
+        text-align: left;
+      }
+      .note.stack {
+        box-shadow: 0 24px 60px rgba(0,0,0,0.16), inset 0 0 0 0.5px rgba(0,0,0,0.06),
+          4px 4px 0 -0.5px rgba(0,0,0,0.06), 4px 4px 0 0 #fcfcf8,
+          8px 8px 0 -0.5px rgba(0,0,0,0.06), 8px 8px 0 0 #faf9f3,
+          12px 12px 0 -0.5px rgba(0,0,0,0.06), 12px 12px 0 0 #f6f4ec;
+      }
+      .note .top {
+        display: flex; align-items: center; gap: 8px;
+        padding: 16px 18px 0;
+      }
+      .chip {
+        display: inline-flex; align-items: center; gap: 5px;
+        height: 26px; padding: 0 12px; border-radius: 13px;
+        font-size: 15px; font-weight: 700;
+      }
+      .chip.red { color: var(--red); background: rgba(217,45,32,.12); }
+      .chip.orange { color: var(--orange); background: rgba(232,89,12,.12); }
+      .chip.yellow { color: #b7791f; background: rgba(214,158,46,.16); }
+      .acts { margin-left: auto; display: flex; gap: 8px; color: rgba(0,0,0,.3); font-size: 17px; }
+      .acts .pin { color:#ff8c1a; }
+      .note .ttl {
+        padding: 12px 18px 4px;
+        font-size: 21px; font-weight: 700;
+        display: flex; align-items: center; gap: 8px;
+      }
+      .note .ttl .caret { color: rgba(0,0,0,.3); font-size:16px;}
+      .note .body { padding: 4px 20px 22px; font-size: 18px; color:#2a2f36; }
+      .todo { display:flex; gap:9px; padding: 5px 0; align-items:flex-start;}
+      .todo .b { flex:0 0 auto; color: var(--ink-soft);}
+      .todo.done span { color: rgba(0,0,0,.4); text-decoration: line-through;}
+      .todo.done .b { color: var(--green);}
+
+      .n1 { left: 70px; top: 30px; transform: rotate(-7deg); z-index:1;}
+      .n2 { left: 250px; top: 200px; transform: rotate(4deg); z-index:3;}
+      .n3 { left: 90px; top: 420px; transform: rotate(-3deg); z-index:2;}
+    </style>
+  </head>
+  <body>
+    <div class="poster">
+      <div class="brand">
+        <img src="assets/icon.png" alt="闪贴" />
+        <span class="name">闪贴</span>
+      </div>
+      <div class="headline">把灵感<br /><span class="grad">随手一贴</span></div>
+      <div class="subline">好用的便利贴软件 — 撕一张贴桌面，记下待办，设个截止日期。</div>
+      <div class="features">
+        <span>桌面便签</span><span>待办清单</span><span>截止提醒</span><span>一键置顶</span>
+      </div>
+
+      <div class="stage">
+        <div class="note n1">
+          <div class="top"><span class="chip orange">🗓 明天</span></div>
+          <div class="ttl"><span class="caret">⌄</span>今日计划</div>
+          <div class="body">
+            <div class="todo done"><span class="b">☑</span><span>晨会同步进度</span></div>
+            <div class="todo"><span class="b">☐</span><span>评审设计稿</span></div>
+            <div class="todo"><span class="b">☐</span><span>给妈妈打电话</span></div>
+          </div>
+        </div>
+        <div class="note stack n2">
+          <div class="top">
+            <span class="chip red">🗓 今天</span>
+            <span class="acts"><span>⊞</span><span class="pin">📌</span><span>✕</span></span>
+          </div>
+          <div class="ttl"><span class="caret">⌄</span>闪贴 待办</div>
+          <div class="body">
+            <div class="todo"><span class="b">☐</span><span>修复同步逻辑</span></div>
+            <div class="todo done"><span class="b">☑</span><span>完成官网首屏</span></div>
+            <div class="todo"><span class="b">☐</span><span>准备发布说明</span></div>
+          </div>
+        </div>
+        <div class="note n3">
+          <div class="top"><span class="chip yellow">🗓 6月10日</span></div>
+          <div class="ttl"><span class="caret">⌄</span>灵感</div>
+          <div class="body">随手记下的一句话，<br />也许就是下一个好点子。</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
