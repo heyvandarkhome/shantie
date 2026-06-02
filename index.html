@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>闪贴 — 世界上最好用的桌面便签</title>
+    <title>闪贴，好用的便利贴软件</title>
     <style>
       :root {
         --bg: #fbfbfa;
@@ -76,6 +76,24 @@
       }
       .nav-links a:hover {
         color: var(--ink);
+      }
+      /* 导航里的黑色下载按钮 */
+      .nav-dl {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+        background: #1f2328 !important;
+        color: #fff !important;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 13.5px;
+        transition: transform 0.15s ease, background-color 0.15s ease;
+      }
+      .nav-dl:hover {
+        background: #000 !important;
+        color: #fff !important;
+        transform: scale(1.04);
       }
 
       /* ============ 通用区块 ============ */
@@ -741,9 +759,6 @@
         .hero-stage {
           transform: scale(0.82);
         }
-        .nav-links {
-          display: none;
-        }
       }
     </style>
   </head>
@@ -755,11 +770,9 @@
         闪贴
       </div>
       <div class="nav-links">
-        <a href="#tear">桌面便签</a>
-        <a href="#todo">待办 &amp; 截止</a>
-        <a href="#pin">置顶</a>
-        <a href="#manager">管理</a>
-        <a href="#download">下载</a>
+        <a class="nav-dl" href="闪贴_0.0.1_aarch64.dmg" download>
+          <span style="font-size:15px">↓</span> macOS 下载
+        </a>
       </div>
     </nav>
 
