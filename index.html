@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>闪贴 — 世界上最好用的桌面便签</title>
+    <style>
+      :root {
+        --bg: #fbfbfa;
+        --ink: #1f2328;
+        --ink-soft: rgba(0, 0, 0, 0.55);
+        --ink-faint: rgba(0, 0, 0, 0.35);
+        --paper: #ffffff;
+        --line: rgba(0, 0, 0, 0.08);
+        --red: #d92d20;
+        --orange: #e8590c;
+        --yellow: #d69e2e;
+        --green: #2f9e44;
+        --radius: 18px;
+        font-family: "PingFang SC", "Helvetica Neue", "Hiragino Sans GB",
+          "Microsoft YaHei", Arial, sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        line-height: 1.6;
+      }
+
+      /* ============ 导航 ============ */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 32px;
+        background: rgba(251, 251, 250, 0.8);
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        border-bottom: 1px solid var(--line);
+      }
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-weight: 700;
+        font-size: 17px;
+      }
+      .nav-logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        object-fit: cover;
+        box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+      }
+      .nav-links {
+        display: flex;
+        gap: 26px;
+        font-size: 14px;
+      }
+      .nav-links a {
+        color: var(--ink-soft);
+        text-decoration: none;
+        transition: color 0.15s ease;
+      }
+      .nav-links a:hover {
+        color: var(--ink);
+      }
+
+      /* ============ 通用区块 ============ */
+      section {
+        padding: 110px 32px;
+        max-width: 1080px;
+        margin: 0 auto;
+      }
+      /* 紧跟 Hero 的首个功能区，收窄上间距 */
+      #tear {
+        padding-top: 40px;
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+          transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      .reveal.in {
+        opacity: 1;
+        transform: none;
+      }
+      .eyebrow {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-bottom: 14px;
+      }
+      h1 {
+        font-size: clamp(40px, 7vw, 76px);
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        line-height: 1.05;
+      }
+      h2 {
+        font-size: clamp(28px, 4vw, 44px);
+        font-weight: 800;
+        letter-spacing: -0.8px;
+        line-height: 1.12;
+      }
+      .lead {
+        font-size: clamp(17px, 2vw, 21px);
+        color: var(--ink-soft);
+        margin-top: 18px;
+        max-width: 540px;
+      }
+
+      /* ============ Hero ============ */
+      .hero {
+        text-align: center;
+        padding-top: 70px;
+        padding-bottom: 20px;
+      }
+      .hero h1 span {
+        background: linear-gradient(120deg, #1f2328, #6b6f76);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .hero .lead {
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero-stage {
+        position: relative;
+        height: 360px;
+        margin-top: 50px;
+      }
+
+      /* ============ 便签组件（真实 UI 复刻） ============ */
+      .note {
+        position: relative;
+        width: 260px;
+        background: var(--paper);
+        border-radius: 16px;
+        box-shadow: 0 10px 34px rgba(0, 0, 0, 0.12),
+          0 2px 6px rgba(0, 0, 0, 0.07), inset 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        text-align: left;
+      }
+      /* 堆：右下叠纸 */
+      .note.stack {
+        box-shadow: 0 10px 34px rgba(0, 0, 0, 0.12),
+          0 2px 6px rgba(0, 0, 0, 0.07), inset 0 0 0 0.5px rgba(0, 0, 0, 0.06),
+          3px 3px 0 -0.5px rgba(0, 0, 0, 0.06), 3px 3px 0 0 #fcfcf8,
+          6px 6px 0 -0.5px rgba(0, 0, 0, 0.06), 6px 6px 0 0 #faf9f3,
+          9px 9px 0 -0.5px rgba(0, 0, 0, 0.06), 9px 9px 0 0 #f6f4ec;
+      }
+      .note-ddl {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 12px 0;
+      }
+      .ddl-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        height: 19px;
+        padding: 0 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .ddl-chip.red {
+        color: var(--red);
+        background: rgba(217, 45, 32, 0.12);
+      }
+      .ddl-chip.orange {
+        color: var(--orange);
+        background: rgba(232, 89, 12, 0.12);
+      }
+      .ddl-chip.yellow {
+        color: #b7791f;
+        background: rgba(214, 158, 46, 0.16);
+      }
+      .note-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 2px;
+        color: var(--ink-faint);
+      }
+      .note-actions .ic {
+        width: 22px;
+        height: 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        font-size: 13px;
+      }
+      .note-actions .ic.pin-on {
+        color: #ff8c1a;
+        background: rgba(255, 140, 26, 0.12);
+      }
+      .note-head {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px 4px;
+      }
+      .note-caret {
+        color: var(--ink-faint);
+        font-size: 12px;
+      }
+      .note-title {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .note-body {
+        padding: 4px 14px 16px;
+        font-size: 13.5px;
+        color: #2a2f36;
+      }
+      .todo {
+        display: flex;
+        align-items: flex-start;
+        gap: 7px;
+        padding: 3px 0;
+      }
+      .todo .box {
+        flex: 0 0 auto;
+        color: var(--ink-soft);
+      }
+      .todo.done span {
+        color: var(--ink-faint);
+        text-decoration: line-through;
+      }
+      .todo.done .box {
+        color: var(--green);
+      }
+
+      /* hero 散落定位 */
+      .hero-stage .note {
+        position: absolute;
+        left: 50%;
+        top: 0;
+      }
+      .hero-stage .n1 {
+        transform: translateX(-60%) rotate(-7deg);
+        z-index: 1;
+      }
+      .hero-stage .n2 {
+        transform: translateX(-50%) translateY(40px) rotate(2deg);
+        z-index: 3;
+      }
+      .hero-stage .n3 {
+        transform: translateX(2%) translateY(18px) rotate(8deg);
+        z-index: 2;
+      }
+
+      /* ============ 功能区：图文交替 ============ */
+      .feature {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        align-items: center;
+      }
+      .feature.flip .feature-visual {
+        order: 2;
+      }
+      .feature-text h2 {
+        margin-bottom: 4px;
+      }
+      .feature-visual {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 360px;
+        background: linear-gradient(160deg, #f0f0ee, #f8f8f7);
+        border-radius: 28px;
+        box-shadow: inset 0 0 0 1px var(--line);
+        position: relative;
+        overflow: hidden;
+      }
+      .feat-list {
+        margin-top: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .feat-list li {
+        list-style: none;
+        display: flex;
+        gap: 10px;
+        font-size: 15px;
+        color: var(--ink-soft);
+      }
+      .feat-list .dot {
+        flex: 0 0 auto;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--ink);
+        color: #fff;
+        font-size: 11px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 2px;
+      }
+
+      /* 撕便签动画舞台 */
+      .tear-stage {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 360px;
+      }
+      .tear-stage .note {
+        width: 210px;
+      }
+      /* 固定的堆：左上角 */
+      .tear-pile {
+        position: absolute;
+        left: 40px;
+        top: 50px;
+        z-index: 1;
+      }
+      /* 被撕下的便签：从堆位置飞到右下桌面，循环 */
+      .tear-fly {
+        position: absolute;
+        left: 40px;
+        top: 50px;
+        z-index: 3;
+        transform-origin: 30px 20px;
+        animation: tearMove 4.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+      @keyframes tearMove {
+        0% {
+          left: 40px;
+          top: 50px;
+          transform: rotate(0deg) scale(1);
+          opacity: 0;
+        }
+        8% {
+          opacity: 1;
+        }
+        /* 撕起、跟手移动到桌面右下 */
+        45% {
+          left: 150px;
+          top: 150px;
+          transform: rotate(5deg) scale(1.02);
+          opacity: 1;
+        }
+        /* 停留展示 */
+        80% {
+          left: 150px;
+          top: 150px;
+          transform: rotate(5deg) scale(1.02);
+          opacity: 1;
+        }
+        /* 淡出，准备下一轮 */
+        100% {
+          left: 150px;
+          top: 150px;
+          transform: rotate(5deg) scale(0.96);
+          opacity: 0;
+        }
+      }
+      .tear-cursor {
+        position: absolute;
+        font-size: 26px;
+        left: 40px;
+        top: 50px;
+        z-index: 4;
+        animation: tearCursor 4.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+      @keyframes tearCursor {
+        0% {
+          left: 70px;
+          top: 60px;
+          opacity: 0;
+        }
+        8% {
+          opacity: 1;
+        }
+        45% {
+          left: 180px;
+          top: 160px;
+          opacity: 1;
+        }
+        80% {
+          left: 180px;
+          top: 160px;
+          opacity: 1;
+        }
+        100% {
+          left: 180px;
+          top: 160px;
+          opacity: 0;
+        }
+      }
+
+      /* ===== 待办勾选动画：☐→☑ 逐项，DDL 变色 ===== */
+      .anim-check {
+        animation: checkCycle 5s ease-in-out infinite;
+        animation-delay: var(--d);
+      }
+      @keyframes checkCycle {
+        0%, 12% {
+          color: var(--ink-soft);
+        }
+        18%, 88% {
+          color: var(--green);
+        }
+        100% {
+          color: var(--ink-soft);
+        }
+      }
+      /* 用伪元素切换字形：默认空框，勾选时实心 */
+      .anim-check {
+        position: relative;
+      }
+      .todo .anim-check {
+        font-size: 0; /* 隐藏原字符，用伪元素显示 */
+      }
+      .todo .anim-check::before {
+        content: "☐";
+        font-size: 13.5px;
+        color: var(--ink-soft);
+        animation: checkGlyph 5s steps(1) infinite;
+        animation-delay: var(--d);
+      }
+      @keyframes checkGlyph {
+        0%, 14% {
+          content: "☐";
+          color: var(--ink-soft);
+        }
+        16%, 90% {
+          content: "☑";
+          color: var(--green);
+        }
+        92%, 100% {
+          content: "☐";
+          color: var(--ink-soft);
+        }
+      }
+      .todo-demo .todo span:last-child {
+        animation: strikeCycle 5s ease-in-out infinite;
+      }
+      .todo-demo .todo:nth-child(1) span:last-child { animation-delay: 0s; }
+      .todo-demo .todo:nth-child(2) span:last-child { animation-delay: 1.1s; }
+      .todo-demo .todo:nth-child(3) span:last-child { animation-delay: 2.2s; }
+      .todo-demo .todo:nth-child(4) span:last-child { animation-delay: 3.3s; }
+      @keyframes strikeCycle {
+        0%, 14% {
+          color: #2a2f36;
+          text-decoration-color: transparent;
+        }
+        16%, 90% {
+          color: var(--ink-faint);
+          text-decoration: line-through;
+        }
+        92%, 100% {
+          color: #2a2f36;
+          text-decoration-color: transparent;
+        }
+      }
+      /* DDL chip 颜色循环 */
+      .cycle-chip {
+        animation: ddlCycle 6s ease-in-out infinite;
+      }
+      @keyframes ddlCycle {
+        0%, 30% {
+          color: var(--red);
+          background: rgba(217, 45, 32, 0.12);
+        }
+        33%, 60% {
+          color: var(--orange);
+          background: rgba(232, 89, 12, 0.12);
+        }
+        63%, 96% {
+          color: #b7791f;
+          background: rgba(214, 158, 46, 0.16);
+        }
+        100% {
+          color: var(--red);
+          background: rgba(217, 45, 32, 0.12);
+        }
+      }
+
+      /* ===== 置顶动画 ===== */
+      .pin-stage {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 360px;
+      }
+      .pin-bgwin {
+        position: absolute;
+        left: 90px;
+        top: 70px;
+        width: 240px;
+        height: 200px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1),
+          inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        z-index: 2;
+      }
+      .pin-bgwin-bar {
+        height: 26px;
+        background: #f1f1ef;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      .pin-bgwin-bar i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.12);
+      }
+      .pin-bgwin-body {
+        padding: 14px;
+        background: repeating-linear-gradient(
+          transparent,
+          transparent 14px,
+          rgba(0, 0, 0, 0.05) 14px,
+          rgba(0, 0, 0, 0.05) 15px
+        );
+        height: 100%;
+      }
+      .pin-note {
+        position: absolute;
+        left: 50px;
+        top: 110px;
+        z-index: 1;
+        animation: pinFloat 4.5s steps(1) infinite;
+      }
+      /* 图钉点亮 / 熄灭循环 */
+      .pin-toggle {
+        animation: pinToggle 4.5s steps(1) infinite;
+      }
+      @keyframes pinToggle {
+        0%, 35% {
+          color: var(--ink-faint);
+          background: transparent;
+          transform: rotate(0deg);
+        }
+        40%, 100% {
+          color: #ff8c1a;
+          background: rgba(255, 140, 26, 0.12);
+          transform: rotate(-45deg);
+        }
+      }
+      /* 便签初始被背景窗口压在下面(z-index:1)；
+       * 点 pin 后跳到最上层(z-index:5) + 上浮 + 阴影加深 */
+      @keyframes pinFloat {
+        0%, 35% {
+          z-index: 1;
+          transform: translateY(0);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08),
+            inset 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+        }
+        40%, 92% {
+          z-index: 5;
+          transform: translateY(-10px);
+          box-shadow: 0 20px 44px rgba(0, 0, 0, 0.22),
+            inset 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+        }
+        100% {
+          z-index: 1;
+          transform: translateY(0);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08),
+            inset 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+        }
+      }
+
+      /* ===== 管理页：循环高亮选中项 ===== */
+      .mgr-cyc {
+        animation: mgrSel 8s steps(1) infinite;
+        animation-delay: calc(var(--i) * 2s);
+      }
+      @keyframes mgrSel {
+        0%, 25% {
+          background: rgba(0, 0, 0, 0.08);
+        }
+        25.01%, 100% {
+          background: transparent;
+        }
+      }
+
+      /* 管理页演示 */
+      .mgr {
+        width: 100%;
+        max-width: 420px;
+        height: 280px;
+        background: #f6f6f4;
+        border-radius: 14px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14),
+          inset 0 0 0 1px var(--line);
+        display: flex;
+        overflow: hidden;
+        font-size: 12px;
+      }
+      .mgr-list {
+        flex: 0 0 150px;
+        background: #fbfbfa;
+        border-right: 1px solid var(--line);
+        padding: 8px 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .mgr-li {
+        padding: 6px 8px;
+        border-radius: 7px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .mgr-li.sel {
+        background: rgba(0, 0, 0, 0.08);
+      }
+      .mgr-li-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .mgr-li .pdot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex: 0 0 auto;
+      }
+      .mgr-li .ttl {
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
+      }
+      .mgr-prog {
+        height: 3px;
+        border-radius: 2px;
+        background: rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+      .mgr-prog i {
+        display: block;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 2px;
+      }
+      .mgr-prog.done i {
+        background: var(--green);
+      }
+      .mgr-detail {
+        flex: 1;
+        padding: 14px;
+      }
+      .mgr-detail h4 {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .mgr-detail .meta {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+
+      /* ============ CTA ============ */
+      .cta {
+        text-align: center;
+      }
+      .cta-card {
+        background: linear-gradient(135deg, #1f2328, #3a3f46);
+        color: #fff;
+        border-radius: 28px;
+        padding: 70px 40px;
+      }
+      .cta-card h2 {
+        color: #fff;
+      }
+      .cta-card .lead {
+        color: rgba(255, 255, 255, 0.7);
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 30px;
+        padding: 14px 30px;
+        background: #fff;
+        color: #1f2328;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 15px;
+        text-decoration: none;
+        transition: transform 0.15s ease;
+      }
+      .btn:hover {
+        transform: scale(1.04);
+      }
+
+      /* ============ Footer ============ */
+      footer {
+        text-align: center;
+        padding: 50px 32px 70px;
+        color: var(--ink-faint);
+        font-size: 13px;
+        border-top: 1px solid var(--line);
+      }
+
+      @media (max-width: 760px) {
+        .feature {
+          grid-template-columns: 1fr;
+          gap: 30px;
+        }
+        .feature.flip .feature-visual {
+          order: 0;
+        }
+        .hero-stage {
+          transform: scale(0.82);
+        }
+        .nav-links {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 导航 -->
+    <nav class="nav">
+      <div class="nav-brand">
+        <img class="nav-logo" src="assets/icon.png" alt="闪贴" />
+        闪贴
+      </div>
+      <div class="nav-links">
+        <a href="#tear">桌面便签</a>
+        <a href="#todo">待办 &amp; 截止</a>
+        <a href="#pin">置顶</a>
+        <a href="#manager">管理</a>
+        <a href="#download">下载</a>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="reveal">
+        <p class="eyebrow">为 macOS 打造</p>
+        <h1>把灵感<span>随手一贴</span><br />钉在桌面上</h1>
+        <p class="lead">
+          闪贴是一款极简的桌面便签。撕一张贴在桌面、随手记下待办、设个截止日期，
+          所有便签整齐地堆在一处，需要时一键展开。
+        </p>
+      </div>
+
+      <div class="hero-stage reveal">
+        <!-- 便签 1：待办 -->
+        <div class="note n1">
+          <div class="note-ddl">
+            <span class="ddl-chip orange">🗓 明天</span>
+          </div>
+          <div class="note-head">
+            <span class="note-caret">⌄</span>
+            <span class="note-title">今日计划</span>
+          </div>
+          <div class="note-body">
+            <div class="todo done"><span class="box">☑</span><span>晨会同步进度</span></div>
+            <div class="todo"><span class="box">☐</span><span>评审设计稿</span></div>
+            <div class="todo"><span class="box">☐</span><span>给妈妈打电话</span></div>
+          </div>
+        </div>
+
+        <!-- 便签 2：堆 -->
+        <div class="note stack n2">
+          <div class="note-ddl">
+            <span class="ddl-chip red">🗓 今天</span>
+            <div class="note-actions">
+              <span class="ic">⊞</span>
+              <span class="ic pin-on">📌</span>
+              <span class="ic">✕</span>
+            </div>
+          </div>
+          <div class="note-head">
+            <span class="note-caret">⌄</span>
+            <span class="note-title">闪贴 待办</span>
+          </div>
+          <div class="note-body">
+            <div class="todo"><span class="box">☐</span><span>修复同步逻辑</span></div>
+            <div class="todo done"><span class="box">☑</span><span>完成官网首屏</span></div>
+            <div class="todo"><span class="box">☐</span><span>准备发布说明</span></div>
+          </div>
+        </div>
+
+        <!-- 便签 3：普通 -->
+        <div class="note n3">
+          <div class="note-ddl">
+            <span class="ddl-chip yellow">🗓 6月10日</span>
+          </div>
+          <div class="note-head">
+            <span class="note-caret">⌄</span>
+            <span class="note-title">灵感</span>
+          </div>
+          <div class="note-body">
+            随手记下的一句话，<br />也许就是下一个好点子。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 功能 1：拖拽贴桌面 -->
+    <section id="tear" class="feature reveal">
+      <div class="feature-text">
+        <p class="eyebrow">Tear &amp; Drop</p>
+        <h2>撕一张，<br />贴到桌面任意角落</h2>
+        <p class="lead">
+          所有便签默认整齐地堆在左上角。按住标题栏轻轻一拖，
+          就能撕下一张独立便签，钉在桌面你顺手的位置。
+        </p>
+        <ul class="feat-list">
+          <li><span class="dot">✓</span>从堆里撕出，跟手移动</li>
+          <li><span class="dot">✓</span>拖回堆上方自动吸附归位</li>
+          <li><span class="dot">✓</span>堆始终保持整洁的统一尺寸</li>
+        </ul>
+      </div>
+      <div class="feature-visual">
+        <div class="tear-stage">
+          <!-- 固定的堆 -->
+          <div class="note stack tear-pile">
+            <div class="note-ddl"><span class="ddl-chip red">🗓 今天</span></div>
+            <div class="note-head">
+              <span class="note-caret">⌄</span><span class="note-title">闪贴 待办</span>
+            </div>
+            <div class="note-body">
+              <div class="todo"><span class="box">☐</span><span>修复同步逻辑</span></div>
+              <div class="todo done"><span class="box">☑</span><span>完成官网首屏</span></div>
+            </div>
+          </div>
+
+          <!-- 被撕下、循环飞向桌面的便签 -->
+          <div class="note tear-fly">
+            <div class="note-ddl"><span class="ddl-chip orange">🗓 明天</span></div>
+            <div class="note-head">
+              <span class="note-caret">⌄</span><span class="note-title">买杯咖啡 ☕</span>
+            </div>
+            <div class="note-body">
+              <div class="todo"><span class="box">☐</span><span>去楼下取快递</span></div>
+              <div class="todo done"><span class="box">☑</span><span>回邮件</span></div>
+            </div>
+          </div>
+
+          <!-- 跟手的指针 -->
+          <span class="tear-cursor">👆</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 功能 2：待办 & 截止 -->
+    <section id="todo" class="feature flip reveal">
+      <div class="feature-text">
+        <p class="eyebrow">To-do &amp; Deadline</p>
+        <h2>待办清单<br />与醒目的截止日期</h2>
+        <p class="lead">
+          按 ⇧Enter 即可把当前行变成待办，点一下方框就能勾选完成。
+          给便签设个截止日期，三色标签让紧迫程度一目了然。
+        </p>
+        <ul class="feat-list">
+          <li><span class="dot" style="background:var(--red)">!</span>已过期 / 今天到期 — 红色</li>
+          <li><span class="dot" style="background:var(--orange)">!</span>明天到期 — 橙色</li>
+          <li><span class="dot" style="background:var(--yellow)">!</span>更远的日期 — 黄色</li>
+        </ul>
+      </div>
+      <div class="feature-visual">
+        <div class="note todo-demo" style="width:240px">
+          <div class="note-ddl">
+            <span class="ddl-chip cycle-chip">🗓 已过期</span>
+          </div>
+          <div class="note-head">
+            <span class="note-caret">⌄</span><span class="note-title">本周交付</span>
+          </div>
+          <div class="note-body">
+            <div class="todo"><span class="box anim-check" style="--d:0s">☐</span><span>需求评审</span></div>
+            <div class="todo"><span class="box anim-check" style="--d:1.1s">☐</span><span>接口联调</span></div>
+            <div class="todo"><span class="box anim-check" style="--d:2.2s">☐</span><span>回归测试</span></div>
+            <div class="todo"><span class="box anim-check" style="--d:3.3s">☐</span><span>提交发布</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 功能 3：置顶 -->
+    <section id="pin" class="feature reveal">
+      <div class="feature-text">
+        <p class="eyebrow">Always on Top</p>
+        <h2>重要的事，<br />一键钉在最前</h2>
+        <p class="lead">
+          点亮便签上的图钉，它就会始终浮在所有窗口之上。
+          无论你在写代码还是看文档，最重要的提醒永远在视线之内。
+        </p>
+        <ul class="feat-list">
+          <li><span class="dot">✓</span>窗口始终置顶，不被遮挡</li>
+          <li><span class="dot">✓</span>橙色图钉清晰标记置顶状态</li>
+          <li><span class="dot">✓</span>再点一下即可取消</li>
+        </ul>
+      </div>
+      <div class="feature-visual">
+        <div class="pin-stage">
+          <!-- 背后被遮挡的"其他窗口" -->
+          <div class="pin-bgwin">
+            <div class="pin-bgwin-bar">
+              <i></i><i></i><i></i>
+            </div>
+            <div class="pin-bgwin-body"></div>
+          </div>
+          <!-- 始终置顶的便签 -->
+          <div class="note pin-note" style="width:230px">
+            <div class="note-ddl">
+              <span class="ddl-chip yellow">🗓 6月12日</span>
+              <div class="note-actions">
+                <span class="ic">⊞</span>
+                <span class="ic pin-toggle">📌</span>
+                <span class="ic">✕</span>
+              </div>
+            </div>
+            <div class="note-head">
+              <span class="note-caret">⌄</span><span class="note-title">别忘了！</span>
+            </div>
+            <div class="note-body">
+              <div class="todo"><span class="box">☐</span><span>下午 3 点视频会议</span></div>
+              <div class="todo"><span class="box">☐</span><span>带上充电器</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 功能 4：管理页 -->
+    <section id="manager" class="feature flip reveal">
+      <div class="feature-text">
+        <p class="eyebrow">Manager</p>
+        <h2>一个面板<br />管理所有便签</h2>
+        <p class="lead">
+          便签多了也不乱。管理页左侧按截止日期排列所有便签，
+          带完成进度条；右侧直接编辑内容、待办与日期，一键贴到桌面。
+        </p>
+        <ul class="feat-list">
+          <li><span class="dot">✓</span>按全部 / 今日 / 明日 / 已过期筛选</li>
+          <li><span class="dot">✓</span>每条便签的待办完成进度一目了然</li>
+          <li><span class="dot">✓</span>右侧实时编辑，多窗口自动同步</li>
+        </ul>
+      </div>
+      <div class="feature-visual">
+        <div class="mgr">
+          <div class="mgr-list">
+            <div class="mgr-li mgr-cyc" style="--i:0">
+              <div class="mgr-li-row">
+                <span class="pdot" style="background:var(--red)"></span>
+                <span class="ttl">本周交付</span>
+              </div>
+              <div class="mgr-prog"><i style="width:50%"></i></div>
+            </div>
+            <div class="mgr-li mgr-cyc" style="--i:1">
+              <div class="mgr-li-row">
+                <span class="pdot" style="background:var(--orange)"></span>
+                <span class="ttl">今日计划</span>
+              </div>
+              <div class="mgr-prog"><i style="width:33%"></i></div>
+            </div>
+            <div class="mgr-li mgr-cyc" style="--i:2">
+              <div class="mgr-li-row">
+                <span class="pdot" style="background:var(--green)"></span>
+                <span class="ttl">购物清单</span>
+              </div>
+              <div class="mgr-prog done"><i style="width:100%"></i></div>
+            </div>
+            <div class="mgr-li mgr-cyc" style="--i:3">
+              <div class="mgr-li-row">
+                <span class="pdot" style="background:var(--yellow)"></span>
+                <span class="ttl">读书笔记</span>
+              </div>
+              <div class="mgr-prog"><i style="width:20%"></i></div>
+            </div>
+          </div>
+          <div class="mgr-detail">
+            <h4>本周交付</h4>
+            <div class="meta">
+              <span class="ddl-chip red">🗓 已过期</span>
+            </div>
+            <div class="todo done"><span class="box">☑</span><span>需求评审</span></div>
+            <div class="todo done"><span class="box">☑</span><span>接口联调</span></div>
+            <div class="todo"><span class="box">☐</span><span>回归测试</span></div>
+            <div class="todo"><span class="box">☐</span><span>提交发布</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="download" class="cta reveal">
+      <div class="cta-card">
+        <h2>让桌面，成为你的第二大脑</h2>
+        <p class="lead">极小、极快、极简。专为 macOS 打造，Windows 即将到来。</p>
+        <a class="btn" href="闪贴_0.0.1_aarch64.dmg" download>
+          <span style="font-size:18px">↓</span> 下载闪贴 for macOS
+        </a>
+        <p style="margin-top:14px;font-size:12px;color:rgba(255,255,255,0.5)">
+          macOS Apple 芯片 · 5.2MB · 首次打开请右键点「打开」
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      闪贴 · 励志做世界上最好用的便利贴 &nbsp;·&nbsp; © 2026 vandarkhome
+    </footer>
+
+    <script>
+      // 滚动渐入
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("in");
+              io.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.15 },
+      );
+      document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+    </script>
+  </body>
+</html>
